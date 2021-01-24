@@ -1,33 +1,34 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Link, useHistory } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const Login = () => {
+const ForgotPassword = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { login, currentUser } = useAuth();
+  const { resetPassword, currentUser } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const history = useHistory();
+  const [message, setMessage] = useState("");
 
   async function handleSumbit(e) {
     e.preventDefault();
 
     try {
+      setMessage("");
       setError("");
       setLoading(true);
-      await login(email, password);
-      history.push("/");
+      await resetPassword(email);
+      setMessage("Check your inbox for a password reset link");
     } catch {
-      setError("Failed to sign in");
+      setError("Failed to reset password");
     }
     setLoading(false);
   }
 
   return (
     <div>
-      <h2>Log in</h2>
+      <h2>Password reset</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
+      <p>{message}</p>
       {currentUser && currentUser.email}
       <form onSubmit={handleSumbit}>
         <label htmlFor="email">Email</label>
@@ -40,24 +41,14 @@ const Login = () => {
           required
         />
 
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onBlur={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        <input disabled={loading} type="submit" value="Log in" />
+        <input disabled={loading} type="submit" value="Reset password" />
       </form>
       <div>
-        <Link to="/forgot-password">Forgot Password?</Link>
+        <Link to="/login">Login</Link>
       </div>
       <p>Need an acocount? </p> <Link to="/signup">Signup</Link>
     </div>
   );
 };
 
-export default Login;
+export default ForgotPassword;
