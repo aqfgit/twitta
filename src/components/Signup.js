@@ -1,5 +1,6 @@
 import React, {useState} from 'react'
 import {useAuth} from "../contexts/AuthContext"
+import {db} from '../firebase'
 import { Link, useHistory } from "react-router-dom";
 
 
@@ -8,6 +9,7 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [handle, setHandle] = useState("")
   const { signup, currentUser } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,12 +25,14 @@ const Signup = () => {
     try {
       setError('');
       setLoading(true);
+      await db.collection("users").add({handle, email})
       await signup(email, password);
       history.push("/");
-
     } catch {
       setError('Failed to create an account')
     }
+
+    
     setLoading(false);
   }
 
@@ -40,6 +44,9 @@ const Signup = () => {
       <form onSubmit={handleSumbit}>
         <label htmlFor="email">Email</label>
         <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} onBlur={(e) => setEmail(e.target.value)} required/>
+
+        <label htmlFor="hanlde">Username</label>
+        <input type="text" id="handle" value={handle} onChange={(e) => setHandle(e.target.value)} onBlur={(e) => setHandle(e.target.value)} required/>
 
         <label htmlFor="password">Password</label>
         <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} onBlur={(e) => setPassword(e.target.value)} required/>
