@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
 import PostTweet from "./PostTweet";
+import Tweet from "./Tweet";
 
 const Timeline = () => {
   const { currentUser } = useAuth();
@@ -13,17 +14,6 @@ const Timeline = () => {
   const [followedUsers, setFollowedUsers] = useState([]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const data = await db
-        .collection("users")
-        .where("email", "==", currentUser.email)
-        .get();
-      data.forEach((doc) => {
-        setHandle(doc.data().handle);
-        setDbUserId(doc.id);
-      });
-    };
-
     const fetchFollowedUsersTweets = async () => {
       const followedUsersCopy = followedUsers.slice(0);
       for (let user of followed) {
@@ -32,13 +22,20 @@ const Timeline = () => {
           .where("handle", "==", user)
           .get();
         data.forEach((doc) => {
-          followedUsersCopy.push({ id: doc.id, handle: user });
+          const duplicateFollowedUsers = followedUsers.some(
+            (el) => el.id === doc.id
+          );
+          if (!duplicateFollowedUsers) {
+            followedUsersCopy.push({ id: doc.id, handle: user });
+          }
           db.collection("users")
             .doc(doc.id)
             .collection("tweets")
             .get()
             .then((values) => {
               values.forEach((doc) => {
+                const duplicateTweet = tweets.some((el) => el.id === doc.id);
+                if (duplicateTweet) return;
                 setTweets((prevState) => {
                   return [
                     ...prevState,
@@ -52,6 +49,16 @@ const Timeline = () => {
 
       setFollowedUsers(followedUsersCopy);
     };
+    const fetchUser = async () => {
+      const data = await db
+        .collection("users")
+        .where("email", "==", currentUser.email)
+        .get();
+      data.forEach((doc) => {
+        setHandle(doc.data().handle);
+        setDbUserId(doc.id);
+      });
+    };
 
     fetchUser();
     fetchFollowedUsersTweets();
@@ -61,17 +68,16 @@ const Timeline = () => {
     <>
       <div>Welcome, {handle}</div>
       <Link to="/dashboard">Dashboard</Link>
-      <PostTweet userId={dbUserId} />
+      <PostTweet
+        userId={dbUserId}
+        tweets={tweets}
+        setTweets={setTweets}
+        handle={handle}
+      />
       {tweets.map((tweet) => {
         console.log(tweet);
         return (
-          <div
-            key={tweet.id}
-            style={{ border: "2px solid blue", padding: "10px" }}
-          >
-            <strong>{tweet.by}</strong> said:
-            <p>{tweet.body}</p>
-          </div>
+          <Tweet key={tweet.id} id={tweet.id} body={tweet.body} by={tweet.by} />
         );
       })}
     </>
