@@ -21,25 +21,32 @@ const Timeline = () => {
           .collection("users")
           .where("handle", "==", user)
           .get();
-        data.forEach((doc) => {
+        data.forEach((docUser) => {
           const duplicateFollowedUsers = followedUsers.some(
-            (el) => el.id === doc.id
+            (el) => el.id === docUser.id
           );
           if (!duplicateFollowedUsers) {
-            followedUsersCopy.push({ id: doc.id, handle: user });
+            followedUsersCopy.push({ id: docUser.id, handle: user });
           }
           db.collection("users")
-            .doc(doc.id)
+            .doc(docUser.id)
             .collection("tweets")
             .get()
             .then((values) => {
-              values.forEach((doc) => {
-                const duplicateTweet = tweets.some((el) => el.id === doc.id);
+              values.forEach((docTweet) => {
+                const duplicateTweet = tweets.some(
+                  (el) => el.id === docTweet.id
+                );
                 if (duplicateTweet) return;
                 setTweets((prevState) => {
                   return [
                     ...prevState,
-                    { body: doc.data().body, id: doc.id, by: user },
+                    {
+                      body: docTweet.data().body,
+                      id: docTweet.id,
+                      by: user,
+                      byId: docUser.id,
+                    },
                   ];
                 });
               });
@@ -77,7 +84,14 @@ const Timeline = () => {
       {tweets.map((tweet) => {
         console.log(tweet);
         return (
-          <Tweet key={tweet.id} id={tweet.id} body={tweet.body} by={tweet.by} />
+          <Tweet
+            key={tweet.id}
+            id={tweet.id}
+            body={tweet.body}
+            by={tweet.by}
+            byId={tweet.byId}
+            handle={handle}
+          />
         );
       })}
     </>
