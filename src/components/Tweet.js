@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { db } from "../firebase";
 
 const Tweet = ({ id, by, byId, body, handle }) => {
@@ -123,7 +124,10 @@ const Tweet = ({ id, by, byId, body, handle }) => {
 
   return (
     <div key={id} style={{ border: "2px solid blue", padding: "10px" }}>
-      <strong>{by}</strong> said:
+      <strong>
+        <Link to={`/${by}`}>{by}</Link>
+      </strong>{" "}
+      said:
       <p>{body}</p>
       <button onClick={liked ? unlikeTweet : likeTweet}>
         <span>

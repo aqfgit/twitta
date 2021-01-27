@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useUser } from "../contexts/UserContext";
 import { db } from "../firebase";
 import PostTweet from "./PostTweet";
 import Tweet from "./Tweet";
 
 const Timeline = () => {
-  const { currentUser } = useAuth();
-  const [handle, setHandle] = useState("");
-  const [dbUserId, setDbUserId] = useState("");
+  const { currentUserHandle, currentDbUserId } = useUser();
   const [tweets, setTweets] = useState([]);
   const followed = ["a4", "a6"];
   const [followedUsers, setFollowedUsers] = useState([]);
@@ -56,30 +54,20 @@ const Timeline = () => {
 
       setFollowedUsers(followedUsersCopy);
     };
-    const fetchUser = async () => {
-      const data = await db
-        .collection("users")
-        .where("email", "==", currentUser.email)
-        .get();
-      data.forEach((doc) => {
-        setHandle(doc.data().handle);
-        setDbUserId(doc.id);
-      });
-    };
 
-    fetchUser();
     fetchFollowedUsersTweets();
   }, []);
 
   return (
     <>
-      <div>Welcome, {handle}</div>
+      <div>Welcome, {currentUserHandle}</div>
       <Link to="/dashboard">Dashboard</Link>
+
       <PostTweet
-        userId={dbUserId}
+        userId={currentDbUserId}
         tweets={tweets}
         setTweets={setTweets}
-        handle={handle}
+        handle={currentUserHandle}
       />
       {tweets.map((tweet) => {
         console.log(tweet);
@@ -90,7 +78,7 @@ const Timeline = () => {
             body={tweet.body}
             by={tweet.by}
             byId={tweet.byId}
-            handle={handle}
+            handle={currentUserHandle}
           />
         );
       })}
